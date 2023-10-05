@@ -1,0 +1,32 @@
+name: Test
+
+on: [push]
+
+jobs:
+
+  test:
+    name: Unit test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+    - name: Update pip
+      run: |
+        python -m pip install --upgrade pip
+    - name: Install project dependencies
+      run: |
+        pip install moto[all]
+        pip install pytest
+    - name: Run MotoProxy
+      run: |
+        moto_proxy -H 0.0.0.0 &
+    - name: Set fake credentials
+      run: |
+        mkdir ~/.aws && touch ~/.aws/credentials && echo -e "[default]\naws_access_key_id = test\naws_secret_access_key = test" > ~/.aws/credentials
+    - name: Test
+      run: |
+        pytest -sv test/test.py
